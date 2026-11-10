@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Prop Tapes · {{ match_ref }} · KashRock{% endblock %}
+{% block content %}
+<h2 style="margin-top:0">{{ match_ref }}</h2>
+<form class="filters" method="get">
+  <div>
+    <label for="kind">Tape</label>
+    <select id="kind" name="kind">
+      {% for key, label in kinds.items() %}
+      <option value="{{ key }}" {{ 'selected' if kind == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit">Load</button>
+</form>
+
+{% if error %}
+{% elif not available %}
+  <div class="notice">
+    {% if status == 'warming' %}
+      This tape is still being built. The API asked for {{ retry_after or 10 }} seconds before the next try.
+    {% else %}
+      The tape is not available.
+      {% if reason %}Reason: {{ reason }}.{% endif %}
+      {% if hint %}{{ hint }}{% endif %}
+    {% endif %}
+  </div>
+{% else %}
+<p class="muted">{{ count or tapes|length }} tapes · showing {{ tapes|length }}</p>
+{% for t in tapes %}
+  <div class="card">
+    <strong>{{ t.prop_id }}</strong>
+    <span class="muted">book: {{ t.book or "" }}</span>
+    {% set tape = t.quote_tape or t.ticks or [] %}
+    {% if tape %}
+    <table style="margin-top:8px">
+      <thead><tr><th>Side</th><th class="num">Line</th><th class="num">Price</th><th>Status</th><th>First Seen (UTC)</th><th>Last Seen (UTC)</th></tr></thead>
+      <tbody>
+      {% for q in tape[:25] %}
+        <tr>
+          <td>{{ q.side or q.direction or "" }}</td>
+          <td class="num">{{ q.line if q.line is not none else "" }}</td>
+          <td class="num">{{ q.price_american if q.price_american is not none else (q.american or "") }}</td>
+          <td>{{ q.market_status or q.status or "" }}</td>
+          <td class="muted">{{ (q.availability.first_seen_at if q.availability else q.observed_at) or "" }}</td>
+          <td class="muted">{{ (q.availability.last_seen_at if q.availability else q.observed_at) or "" }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if tape|length > 25 %}<p class="muted">Showing first 25 of {{ tape|length }} observations.</p>{% endif %}
+    {% else %}
+      <p class="muted">No observations in this tape yet.</p>
+    {% endif %}
+  </div>
+{% else %}
+  <p class="muted">No tapes returned for this match and kind.</p>
+{% endfor %}
+{% endif %}
+{% endblock %}

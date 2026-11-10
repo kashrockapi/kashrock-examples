@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}LoL Players · KashRock{% endblock %}
+{% block content %}
+<form class="filters" method="get">
+  <div>
+    <label for="q">Nickname</label>
+    <input id="q" name="q" value="{{ args.q }}" placeholder="search players">
+  </div>
+  <button type="submit">Search</button>
+</form>
+
+{% if not error %}
+<p class="muted">{{ "{:,}".format(total) }} players · showing {{ items|length }}</p>
+<table>
+  <thead><tr><th>Player</th><th>Team</th><th>Role</th><th>Country</th><th>ID</th></tr></thead>
+  <tbody>
+  {% for p in items %}
+    <tr>
+      <td>{{ p.nickname or p.name or p.player_name or "" }}</td>
+      <td>{{ p.team or "" }}</td>
+      <td class="muted">{{ p.role or "" }}</td>
+      <td class="muted">{{ p.country or "" }}</td>
+      <td class="muted" style="font-size:11px">{{ p.player_id or p.id or p.canonical_player_id or "" }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="muted">No players matched. Try a shorter nickname.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="pager">
+  {% if args.offset != '0' %}
+    {% set prev = [args.offset|int - 50, 0]|max %}
+    <a href="?{{ query_string }}&offset={{ prev }}">&larr; Newer</a>
+  {% endif %}
+  {% if has_more %}
+    {% set nxt = args.offset|int + 50 %}
+    <a href="?{{ query_string }}&offset={{ nxt }}">Older &rarr;</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

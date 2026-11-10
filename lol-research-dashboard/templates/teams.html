@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}LoL Teams · KashRock{% endblock %}
+{% block content %}
+<form class="filters" method="get">
+  <div>
+    <label for="q">Team</label>
+    <input id="q" name="q" value="{{ args.q }}" placeholder="search teams">
+  </div>
+  <button type="submit">Search</button>
+</form>
+
+{% if not error %}
+<p class="muted">{{ "{:,}".format(total) }} teams · showing {{ items|length }}</p>
+<table>
+  <thead><tr><th>Team</th><th>Slug</th><th>Country</th><th>ID</th></tr></thead>
+  <tbody>
+  {% for t in items %}
+    <tr>
+      <td>{{ t.name or "" }}</td>
+      <td class="muted">{{ t.slug or "" }}</td>
+      <td class="muted">{{ t.country_id or t.country or "" }}</td>
+      <td class="muted" style="font-size:11px">{{ t.canonical_team_id or t.id or "" }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="muted">No teams matched.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="pager">
+  {% if args.offset != '0' %}
+    {% set prev = [args.offset|int - 50, 0]|max %}
+    <a href="?{{ query_string }}&offset={{ prev }}">&larr; Newer</a>
+  {% endif %}
+  {% if has_more %}
+    {% set nxt = args.offset|int + 50 %}
+    <a href="?{{ query_string }}&offset={{ nxt }}">Older &rarr;</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

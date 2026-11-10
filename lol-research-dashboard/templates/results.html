@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}LoL Graded Results · KashRock{% endblock %}
+{% block content %}
+<form class="filters" method="get">
+  <div>
+    <label for="grade">Grade</label>
+    <select id="grade" name="grade">
+      {% for key, label in grades.items() %}
+      <option value="{{ key }}" {{ 'selected' if args.grade == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit">Apply</button>
+</form>
+
+{% if not error %}
+<p class="muted">Graded props and lines, newest first · showing {{ items|length }}</p>
+<table>
+  <thead><tr><th>Player</th><th>Market</th><th>Match</th><th>Book</th><th>Side</th><th>Grade</th><th>Graded At (UTC)</th></tr></thead>
+  <tbody>
+  {% for r in items %}
+    <tr>
+      <td>{{ r.player_name or "" }}</td>
+      <td>{{ r.stat_type or "" }}</td>
+      <td class="muted">{{ r.home_team or "" }} vs {{ r.away_team or "" }}</td>
+      <td>{{ r.book_name or "" }}</td>
+      <td>{{ r.direction or "" }}</td>
+      <td class="{{ r.grade or '' }}">{{ r.grade or "" }}</td>
+      <td class="muted">{{ r.graded_at or "" }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">No graded results for this filter yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="pager">
+  {% if args.offset != '0' %}
+    {% set prev = [args.offset|int - 50, 0]|max %}
+    <a href="?{{ query_string }}&offset={{ prev }}">&larr; Newer</a>
+  {% endif %}
+  {% if has_more %}
+    {% set nxt = args.offset|int + 50 %}
+    <a href="?{{ query_string }}&offset={{ nxt }}">Older &rarr;</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

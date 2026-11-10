@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}LoL Matches · KashRock{% endblock %}
+{% block content %}
+<form class="filters" method="get">
+  <div>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      {% for key, label in statuses.items() %}
+      <option value="{{ key }}" {{ 'selected' if args.status == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="q">Search</label>
+    <input id="q" name="q" value="{{ args.q }}" placeholder="team name">
+  </div>
+  <div>
+    <label for="date">Date</label>
+    <input id="date" name="date" type="date" value="{{ args.date }}">
+  </div>
+  <button type="submit">Apply</button>
+</form>
+
+{% if not error %}
+<p class="muted">{{ "{:,}".format(total) }} matches · showing {{ items|length }}</p>
+<div style="overflow-x:auto">
+<table>
+  <thead>
+    <tr><th>Match</th><th>Status</th><th>Start (UTC)</th><th class="num">Score</th><th>Format</th><th>Competition</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for m in items %}
+    <tr>
+      <td>
+        {{ m.team1 or m.home_team or "" }} vs {{ m.team2 or m.away_team or "" }}
+        {% if m.is_live %}<span class="badge" style="border-color:#f85149;color:#ff7b72">LIVE</span>{% endif %}
+      </td>
+      <td>{{ m.status }}</td>
+      <td class="muted">{{ m.event_time or m.start_time or "" }}</td>
+      <td class="num">{{ m.score1 }}-{{ m.score2 }}</td>
+      <td>Bo{{ m.best_of or "?" }}</td>
+      <td class="muted">{{ m.competition or m.tournament or "" }}</td>
+      <td><a href="/match/{{ m.kr_match_id or m.slug }}" style="color:#58a6ff">detail</a>
+          · <a href="/history/{{ m.kr_match_id or m.slug }}" style="color:#58a6ff">tapes</a></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="muted">No matches for this filter.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<div class="pager">
+  {% if args.offset != '0' %}
+    {% set prev = [args.offset|int - 50, 0]|max %}
+    <a href="?{{ query_string }}&offset={{ prev }}">&larr; Newer</a>
+  {% endif %}
+  {% if has_more %}
+    {% set nxt = args.offset|int + 50 %}
+    <a href="?{{ query_string }}&offset={{ nxt }}">Older &rarr;</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

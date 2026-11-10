@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}CS2 Consensus Lines · KashRock{% endblock %}
+{% block content %}
+<h2 style="margin-top:0">Consensus Lines</h2>
+<p class="muted">
+  Fair price per outcome across books, with each book's price and EV against it.
+  {% if checked_at %}Board checked {{ checked_at }}.{% endif %}
+</p>
+{% if not available %}
+  <div class="notice">The lines board is not published yet.
+    {% if reason %}Reason: {{ reason }}.{% endif %}
+    {% if hint %}{{ hint }}{% endif %}
+  </div>
+{% else %}
+{% for ev in events %}
+  <div style="border:1px solid #21262d;border-radius:8px;padding:14px 16px;margin-bottom:14px">
+    <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
+      <strong>{{ ev.home_team }} vs {{ ev.away_team }}</strong>
+      <span class="muted">{{ ev.book_start_time or "" }}</span>
+      {% if ev.best_edge and ev.best_edge.get('ev_pct') is not none %}
+        <span class="badge">best edge {{ "%+.1f" % ev.best_edge.ev_pct }}% at {{ ev.best_edge.get('source', '') }} on {{ ev.best_edge.get('market', '') }}</span>
+      {% endif %}
+      {% if ev.match_link == 'pending' %}
+        <span class="badge">match not on schedule yet</span>
+      {% endif %}
+    </div>
+    {% for m in ev.markets or [] %}
+      <div style="margin-top:10px">
+        <div class="muted" style="margin-bottom:6px">{{ m.market_label or m.market }}</div>
+        <table>
+          <thead><tr><th>Outcome</th><th class="num">Fair</th><th class="num">Best Book Price</th><th class="num">Best EV</th><th>Books</th></tr></thead>
+          <tbody>
+          {% for o in m.outcomes or [] %}
+            <tr>
+              <td>{{ o.name }}</td>
+              <td class="num">{{ "%.3f" % o.fair_probability if o.fair_probability else "" }}</td>
+              <td class="num">
+                {% set priced = (o.prices or [])|selectattr('decimal')|list|sort(attribute='decimal', reverse=True) %}
+                {% set best = priced[0] if priced else none %}
+                {% if best %}{{ "%.2f" % best.decimal }} ({{ best.get('source', '') }}){% else %}<span class="muted">no price</span>{% endif %}
+              </td>
+              <td class="num">
+                {% if best and best.get('ev_pct') is not none %}
+                  <span class="{{ 'over' if best.ev_pct > 0 else 'under' }}">{{ "%+.1f" % best.ev_pct }}%</span>
+                {% endif %}
+              </td>
+              <td class="muted">{{ (o.prices or [])|length }} books</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="muted">No events on the board right now.</p>
+{% endfor %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}CS2 Props Board · KashRock{% endblock %}
+{% block content %}
+<form class="filters" method="get">
+  <div>
+    <label for="board">Board</label>
+    <select id="board" name="board">
+      {% for key, label in BOARDS.items() %}
+      <option value="{{ key }}" {{ 'selected' if args.board == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="view">View</label>
+    <select id="view" name="view">
+      {% for key, label in VIEWS.items() %}
+      <option value="{{ key }}" {{ 'selected' if args.view == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="market">Market</label>
+    <select id="market" name="market">
+      <option value="">All markets</option>
+      {% for slug, label in (meta.markets or {}).items() %}
+      <option value="{{ slug }}" {{ 'selected' if args.market == slug }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="book">Book</label>
+    <select id="book" name="book">
+      <option value="">All books</option>
+      {% for key, label in (meta.books or {}).items() %}
+      <option value="{{ key }}" {{ 'selected' if args.book == key }}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="player">Player</label>
+    <input id="player" name="player" value="{{ args.player }}" placeholder="nickname contains">
+  </div>
+  <button type="submit">Apply</button>
+</form>
+
+{% if not error %}
+{% if not available %}
+  <div class="notice">The board is not available right now.
+    {% if reason %}Reason: {{ reason }}.{% endif %}
+    {% if hint %}{{ hint }}{% endif %}
+  </div>
+{% else %}
+<p class="muted">
+  {{ "{:,}".format(total) }} quotes · showing {{ returned }} ·
+  generated {{ generated_at or "just now" }}
+  {% for b in stale_books %}<span class="badge stale">{{ b.book or b }} board is stale</span>{% endfor %}
+</p>
+<div style="overflow-x:auto">
+<table>
+  <thead>
+    <tr>
+      <th>Player</th><th>Market</th><th>Match</th><th>Book</th>
+      <th>Side</th><th class="num">Line</th><th class="num">Odds</th><th class="num">Decimal</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td>{{ r.player_name or r._player or r.canonical_player_name or "" }}</td>
+      <td>{{ meta.markets.get(r.stat_type, r.stat_type) if meta.markets else r.stat_type }}</td>
+      <td class="muted">{{ r.home_team or "" }} vs {{ r.away_team or "" }}</td>
+      <td>{{ meta.books.get(r.sportsbook_name or r.book_name, r.book_name or r.sportsbook_name or "") }}</td>
+      <td class="{{ 'over' if r.direction == 'over' else 'under' if r.direction == 'under' else '' }}">
+        {{ r.direction or "" }}{% if r.is_alt_line %} <span class="badge">alt</span>{% endif %}
+      </td>
+      <td class="num">{{ r.line if r.line is not none else "" }}</td>
+      <td class="num">{{ r.odds if r.odds is not none else "" }}</td>
+      <td class="num">{{ ("%.2f" % r.decimal_odds) if r.decimal_odds else "" }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="8" class="muted">No quotes match these filters. Loosen the market, book, or player filter.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<div class="pager">
+  {% if args.offset != '0' %}
+    {% set prev = [args.offset|int - 200, 0]|max %}
+    <a href="?{{ query_string }}&offset={{ prev }}">&larr; Newer</a>
+  {% endif %}
+  {% if has_more %}
+    {% set nxt = args.offset|int + 200 %}
+    <a href="?{{ query_string }}&offset={{ nxt }}">Older &rarr;</a>
+  {% endif %}
+  <span class="muted">offset {{ args.offset }}</span>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}
