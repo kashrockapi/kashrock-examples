@@ -9,6 +9,12 @@ No sample data. Every row on the page came from `GET /v7/cs2/props` or
 `GET /v7/cs2/lines` a moment ago. When the board is empty or a book's refresh
 is delayed, the page says so instead of inventing rows.
 
+![props dashboard](screenshot.jpg)
+
+**Plan:** the free Sandbox works (CS2 props and match discovery, no card). The consensus-lines view needs Hobby or above.
+
+The page opens on the Grouped view, one row per book quote. The Every Quote and Best Price views currently return an empty board because the API sends grouped data for `view=rows`. That is a KashRock API bug and is being fixed there.
+
 ## What it uses
 
 | Endpoint | Purpose |
