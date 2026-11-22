@@ -26,7 +26,7 @@ from kashrock_client import KashRockClient, KashRockError  # noqa: E402
 app = Flask(__name__)
 
 BOARDS = {"all": "DFS + Sportsbooks", "dfs": "DFS Apps", "main": "Sportsbooks"}
-VIEWS = {"rows": "Every Quote", "best": "Best Price Only", "groups": "Grouped"}
+VIEWS = {"groups": "Grouped", "rows": "Every Quote", "best": "Best Price Only"}
 PAGE_SIZE = 200
 ENV_PATH = Path(__file__).resolve().parent / ".env"
 
@@ -52,7 +52,7 @@ def _props_page(kr: KashRockClient, args: dict) -> dict:
     """One page of the props board. Returns rows plus the response envelope."""
     params = {
         "board": args.get("board") or "all",
-        "view": args.get("view") or "rows",
+        "view": args.get("view") or "groups",
         "format": "slim",
         "limit": PAGE_SIZE,
         "offset": int(args.get("offset") or 0),
@@ -62,7 +62,7 @@ def _props_page(kr: KashRockClient, args: dict) -> dict:
             params[key] = args[key]
     body = kr.get("/v7/cs2/props", params)
     rows = body.get("props") or body.get("rows") or []
-    if args.get("view") == "groups":
+    if params["view"] == "groups":
         rows = _flatten_groups(body.get("groups") or [])
     return {
         "rows": rows,
@@ -101,7 +101,7 @@ def _meta(kr: KashRockClient) -> dict:
 def index():
     args = {
         "board": request.args.get("board", "all"),
-        "view": request.args.get("view", "rows"),
+        "view": request.args.get("view", "groups"),
         "market": request.args.get("market", ""),
         "book": request.args.get("book", ""),
         "player": request.args.get("player", ""),
@@ -154,8 +154,8 @@ def selftest() -> int:
     meta = kr.get("/v7/meta", {"sport": "cs2"})
     print(f"meta: plan={meta.get('plan')} sports={len(meta.get('sports') or [])} markets={len(meta.get('markets') or [])}")
 
-    props = kr.get("/v7/cs2/props", {"board": "all", "view": "rows", "format": "slim", "limit": 5})
-    rows = props.get("props") or []
+    props = kr.get("/v7/cs2/props", {"board": "all", "view": "groups", "format": "slim", "limit": 5})
+    rows = _flatten_groups(props.get("groups") or [])
     print(f"props: total={props.get('total')} returned={len(rows)} available={props.get('available')}")
     if rows:
         r = rows[0]
