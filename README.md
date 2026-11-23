@@ -28,7 +28,7 @@ Agents and coding tools: [Agents](https://www.kashrock.com/agents?utm_source=git
 
 | App | What you get | Plan |
 | --- | --- | --- |
-| [LoL research dashboard](lol-research-dashboard) | LoL matches, players, teams, grades, quote tapes | Sandbox browses. Deeper history needs Hobby. |
+| [LoL research dashboard](lol-research-dashboard) | LoL matches, players, teams, grades, quote tapes | Hobby for matches. History tape is Builder and up. Sandbox is CS2 only. |
 | [Discord odds bot](discord-odds-alert-bot) | Polls the props board and posts new or repriced offers | Sandbox is enough for one sport on a slow poll. |
 
 Titles on the API: CS2, Valorant, League of Legends, Dota 2, Call of Duty, Rainbow Six, Mobile Legends, Deadlock, Apex Legends, Overwatch. Props, live boards, and grades exist when that title has them. An empty board is an empty board.
